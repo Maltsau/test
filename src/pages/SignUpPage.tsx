@@ -1,7 +1,15 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import { useForm, SubmitHandler } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import DoneIcon from "../assets/icons/Shape.svg";
+
+import {
+	PageTytle,
+	PageSubtytle,
+	LoginTytle,
+	LoginLink,
+} from "../UI/common-elements";
 
 const UserForm = styled.form`
 	width: 100%;
@@ -9,20 +17,6 @@ const UserForm = styled.form`
 	display: flex;
 	flex-direction: column;
 	align-items: flex-start;
-`;
-
-const FormTytle = styled.h2`
-	font-size: 22px;
-	font-weight: 600;
-	line-height: 26px;
-	letter-spacing: -0.2px;
-`;
-
-const FormSubtytle = styled.h3`
-	font-size: 14px;
-	font-weight: 200;
-	line-height: 16px;
-	letter-spacing: 0.2px;
 `;
 
 const InputGroup = styled.div`
@@ -109,18 +103,6 @@ const SubmitContainer = styled.div`
 	align-items: center;
 `;
 
-const LoginTytle = styled.span`
-	font-size: 13px;
-	display: flex;
-`;
-
-const LoginLink = styled.a`
-	color: #5a61ed;
-	text-decoration: underline;
-	cursor: pointer;
-	margin-left: 2px;
-`;
-
 const SignUpButton = styled.div`
 	font-family: "PT Sans", sans-serif;
 	font-size: 14px;
@@ -172,15 +154,16 @@ export default function SignUpPage() {
 			year: 1995,
 		},
 	});
-	const onSubmit: SubmitHandler<inputs> = (data) => {
-		console.log(data);
+	const navigate = useNavigate();
+	const onSubmit: SubmitHandler<inputs> = (/* data */) => {
+		navigate("/success");
 		reset();
 	};
 
 	return (
 		<UserForm>
-			<FormTytle>New user?</FormTytle>
-			<FormSubtytle>Use the form below to create your account.</FormSubtytle>
+			<PageTytle>New user?</PageTytle>
+			<PageSubtytle>Use the form below to create your account.</PageSubtytle>
 			<InputGroup>
 				<FormLabel>
 					First Name
