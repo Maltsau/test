@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import { useForm, SubmitHandler } from "react-hook-form";
+import { useForm, SubmitHandler, SubmitErrorHandler } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 import DoneIcon from "../assets/icons/Shape.svg";
 import PageBackground from "../assets/images/noun_925550.svg";
 
@@ -12,7 +12,7 @@ import {
 	LoginTytle,
 	LoginLink,
 } from "../UI/common-elements";
-import { warning } from "react-admin";
+import { useState } from "react";
 
 const UserForm = styled.form`
 	padding: 39px 22px 33px 21px;
@@ -32,6 +32,7 @@ const UserForm = styled.form`
 `;
 
 const InputGroup = styled.div`
+	position: relative;
 	width: 100%;
 	display: grid;
 	grid-template-columns: 1fr 1fr;
@@ -56,6 +57,7 @@ const FormLabel = styled.label<{ paddingTop?: string; isNotValid?: boolean }>`
 `;
 
 const FormInput = styled.input<{ isNotValid?: boolean }>`
+	width: 100%;
 	height: 16px;
 	border: none;
 	font-size: 14px;
@@ -76,10 +78,11 @@ const SelectOption = styled.option`
 	padding-left: 0.4px;
 `;
 
-const EmailContainer = styled.div`
+const InputContainer = styled.div`
+	width: 100%;
 	display: flex;
 	align-items: center;
-	gap: 62px;
+	justify-content: space-between;
 `;
 
 const ValidIcon = styled.img<{ isNotValid?: boolean }>`
@@ -124,7 +127,7 @@ const SubmitContainer = styled.div`
 	}
 `;
 
-const SignUpButton = styled.div`
+const SignUpButton = styled.div<{ isShaking: boolean }>`
 	font-family: "PT Sans", sans-serif;
 	font-size: 14px;
 	line-height: 18px;
@@ -132,6 +135,51 @@ const SignUpButton = styled.div`
 	color: white;
 	padding: 7px 25px;
 	cursor: pointer;
+	animation-name: ${({ isShaking }) => (isShaking ? shake : "none")};
+	animation-duration: 0.5s;
+`;
+
+const ErrorParagraph = styled.div`
+	font-size: 12px;
+	position: absolute;
+	top: 100%;
+	color: red;
+`;
+
+const shake = keyframes`
+0% {
+    transform: translate(1px, 1px) rotate(0deg);
+  }
+  10% {
+    transform: translate(-1px, -2px) rotate(-1deg);
+  }
+  20% {
+    transform: translate(-3px, 0px) rotate(1deg);
+  }
+  30% {
+    transform: translate(3px, 2px) rotate(0deg);
+  }
+  40% {
+    transform: translate(1px, -1px) rotate(1deg);
+  }
+  50% {
+    transform: translate(-1px, 2px) rotate(-1deg);
+  }
+  60% {
+    transform: translate(-3px, 1px) rotate(0deg);
+  }
+  70% {
+    transform: translate(3px, 1px) rotate(-1deg);
+  }
+  80% {
+    transform: translate(-1px, -1px) rotate(1deg);
+  }
+  90% {
+    transform: translate(1px, 2px) rotate(0deg);
+  }
+  100% {
+    transform: translate(1px, -2px) rotate(-1deg);
+  }
 `;
 
 type inputs = {
@@ -148,6 +196,7 @@ type inputs = {
 };
 
 export default function SignUpPage() {
+	const [formFail, setFormFail] = useState(false);
 	const days = new Array(31).fill(1).map((day, i) => (day = 1 + i));
 	const months = [...Array(12).keys()].map((key) =>
 		new Date(0, key).toLocaleString("en", { month: "long" })
@@ -164,7 +213,7 @@ export default function SignUpPage() {
 		reset,
 		watch,
 	} = useForm<inputs>({
-		mode: "all",
+		mode: "onSubmit",
 		defaultValues: {
 			nationality: "American",
 			email: "alice.miller@yahoo.com",
@@ -176,11 +225,23 @@ export default function SignUpPage() {
 	const navigate = useNavigate();
 	const onSubmit: SubmitHandler<inputs> = (data) => {
 		navigate("/success");
-		console.log("form", watchInputs);
+		console.log("data", data);
 		reset();
 	};
-	const watchInputs = watch();
 
+	const onFail: SubmitErrorHandler<inputs> = (error) => {
+		console.log("errors", error);
+		setFormFail(true);
+		setTimeout(() => setFormFail(false), 500);
+	};
+	const watchInputs = watch();
+	// console.log(
+	// 	"errors",
+	// 	errors,
+	// 	watchInputs.passwordConfirmation,
+	// 	watchInputs.password,
+	// 	watchInputs.password === watchInputs.passwordConfirmation
+	// );
 	return (
 		<UserForm style={{ backgroundImage: `url(${PageBackground})` }}>
 			<PageTytle>New user?</PageTytle>
@@ -188,17 +249,31 @@ export default function SignUpPage() {
 			<InputGroup>
 				<FormLabel isNotValid={!!errors.firstName}>
 					First Name
-					<FormInput
-						isNotValid={!!errors.firstName}
-						{...register("firstName", { required: true })}
-					/>
+					<InputContainer>
+						<FormInput
+							isNotValid={!!errors.firstName}
+							{...register("firstName", { required: true })}
+						/>
+						<ValidIcon
+							isNotValid={!!errors.firstName || !watchInputs.firstName}
+							src={DoneIcon}
+							alt="valid-icon"
+						/>
+					</InputContainer>
 				</FormLabel>
 				<FormLabel isNotValid={!!errors.lastName}>
 					Last Name
-					<FormInput
-						isNotValid={!!errors.lastName}
-						{...register("lastName", { required: true })}
-					/>
+					<InputContainer>
+						<FormInput
+							isNotValid={!!errors.lastName}
+							{...register("lastName", { required: true })}
+						/>
+						<ValidIcon
+							isNotValid={!!errors.lastName || !watchInputs.lastName}
+							src={DoneIcon}
+							alt="valid-icon"
+						/>
+					</InputContainer>
 				</FormLabel>
 				<FormLabel>
 					Nationality
@@ -213,7 +288,7 @@ export default function SignUpPage() {
 				</FormLabel>
 				<FormLabel isNotValid={!!errors.email}>
 					E-mail
-					<EmailContainer>
+					<InputContainer>
 						<FormInput
 							isNotValid={!!errors.email}
 							{...register("email", {
@@ -227,7 +302,7 @@ export default function SignUpPage() {
 							src={DoneIcon}
 							alt="valid-icon"
 						/>
-					</EmailContainer>
+					</InputContainer>
 				</FormLabel>
 				<FormLabel paddingTop="2px">
 					Date of Birth
@@ -279,6 +354,10 @@ export default function SignUpPage() {
 							required: true,
 							pattern:
 								/(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])[0-9a-zA-Z!@#$%^&*]{8,}/g,
+							validate: () =>
+								watchInputs.passwordConfirmation
+									? watchInputs.password === watchInputs.passwordConfirmation
+									: true,
 						})}
 					/>
 				</FormLabel>
@@ -289,23 +368,32 @@ export default function SignUpPage() {
 					Confirm Password
 					<FormInput
 						type="password"
-						isNotValid={
-							!!errors.passwordConfirmation &&
-							watchInputs.password !== watchInputs.passwordConfirmation
-						}
+						isNotValid={!!errors.passwordConfirmation}
 						{...register("passwordConfirmation", {
 							required: true,
-							pattern:
-								/(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])[0-9a-zA-Z!@#$%^&*]{8,}/g,
+							// pattern:
+							// 	/(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])[0-9a-zA-Z!@#$%^&*]{8,}/g,
+							// validate: () =>
+							// 	watchInputs.password
+							// 		? watchInputs.password === watchInputs.passwordConfirmation
+							// 		: true,
 						})}
 					/>
 				</FormLabel>
+				{(errors.password?.type === "validate" ||
+					errors.passwordConfirmation?.type === "validate") && (
+					<ErrorParagraph>{`Password does not match`}</ErrorParagraph>
+				)}
 			</InputGroup>
+
 			<SubmitContainer>
 				<LoginTytle>
 					Have an account? <LoginLink href="#">Login</LoginLink>
 				</LoginTytle>
-				<SignUpButton onClick={handleSubmit(onSubmit)}>
+				<SignUpButton
+					isShaking={formFail}
+					onClick={handleSubmit(onSubmit, onFail)}
+				>
 					Complete Signup
 				</SignUpButton>
 			</SubmitContainer>
