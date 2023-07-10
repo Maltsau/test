@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import { useForm, SubmitHandler } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
+
 import styled from "styled-components";
 import DoneIcon from "../assets/icons/Shape.svg";
+import PageBackground from "../assets/images/noun_925550.svg";
 
 import {
 	PageTytle,
@@ -10,25 +12,37 @@ import {
 	LoginTytle,
 	LoginLink,
 } from "../UI/common-elements";
+import { warning } from "react-admin";
 
 const UserForm = styled.form`
-	width: 100%;
-	padding: 39px 22px 33px 22px;
+	padding: 39px 22px 33px 21px;
 	display: flex;
 	flex-direction: column;
 	align-items: flex-start;
+	background: center no-repeat url("../assets/images/noun_925550.svg");
+	background-size: 100%;
+	@media (max-width: 610px) {
+		align-items: center;
+		width: 100%;
+	}
+	@media (max-width: 400px) {
+		width: max-content;
+		align-items: stretch;
+	}
 `;
 
 const InputGroup = styled.div`
 	width: 100%;
 	display: grid;
 	grid-template-columns: 1fr 1fr;
-	grid-template-rows: 1fr 1fr 1fr 1fr;
 	gap: 17px 13px;
 	padding-top: 20px;
+	@media (max-width: 610px) {
+		grid-template-columns: 1fr;
+	}
 `;
 
-const FormLabel = styled.label<{ paddingTop?: string }>`
+const FormLabel = styled.label<{ paddingTop?: string; isNotValid?: boolean }>`
 	padding-top: ${(props) => props.paddingTop};
 	font-size: 12px;
 	font-weight: 200;
@@ -37,6 +51,8 @@ const FormLabel = styled.label<{ paddingTop?: string }>`
 	flex-direction: column;
 	align-items: baseline;
 	gap: 5.3px;
+	border-bottom: ${({ isNotValid }) =>
+		isNotValid ? "2px solid red" : "1px solid #f2f2f2"};
 `;
 
 const FormInput = styled.input<{ isNotValid?: boolean }>`
@@ -67,7 +83,7 @@ const EmailContainer = styled.div`
 `;
 
 const ValidIcon = styled.img<{ isNotValid?: boolean }>`
-	display: ${({ isNotValid }) => (isNotValid ? "none" : "block")};
+	opacity: ${({ isNotValid }) => (isNotValid ? "0" : "1")};
 	margin-left: 5px;
 	width: 11px;
 	height: 8px;
@@ -101,13 +117,17 @@ const SubmitContainer = styled.div`
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
+	@media (max-width: 665px) {
+		flex-direction: column;
+		margin-top: 50px;
+		gap: 20px;
+	}
 `;
 
 const SignUpButton = styled.div`
 	font-family: "PT Sans", sans-serif;
 	font-size: 14px;
 	line-height: 18px;
-	letter-spacing: -0.3px;
 	background-color: #5a61ed;
 	color: white;
 	padding: 7px 25px;
@@ -139,14 +159,13 @@ export default function SignUpPage() {
 
 	const {
 		register,
-		formState: { isValid },
+		formState: { isValid, errors, isDirty },
 		handleSubmit,
 		reset,
+		watch,
 	} = useForm<inputs>({
 		mode: "all",
 		defaultValues: {
-			firstName: "Alice",
-			lastName: "Miller",
 			nationality: "American",
 			email: "alice.miller@yahoo.com",
 			day: 21,
@@ -155,74 +174,89 @@ export default function SignUpPage() {
 		},
 	});
 	const navigate = useNavigate();
-	const onSubmit: SubmitHandler<inputs> = (/* data */) => {
+	const onSubmit: SubmitHandler<inputs> = (data) => {
 		navigate("/success");
+		console.log("form", watchInputs);
 		reset();
 	};
+	const watchInputs = watch();
 
 	return (
-		<UserForm>
+		<UserForm style={{ backgroundImage: `url(${PageBackground})` }}>
 			<PageTytle>New user?</PageTytle>
 			<PageSubtytle>Use the form below to create your account.</PageSubtytle>
 			<InputGroup>
-				<FormLabel>
+				<FormLabel isNotValid={!!errors.firstName}>
 					First Name
-					<FormInput {...register("firstName")} />
+					<FormInput
+						isNotValid={!!errors.firstName}
+						{...register("firstName", { required: true })}
+					/>
 				</FormLabel>
-				<FormLabel>
+				<FormLabel isNotValid={!!errors.lastName}>
 					Last Name
-					<FormInput {...register("lastName")} />
+					<FormInput
+						isNotValid={!!errors.lastName}
+						{...register("lastName", { required: true })}
+					/>
 				</FormLabel>
 				<FormLabel>
 					Nationality
-					<FormSelect width="100%" {...register("nationality")}>
+					<FormSelect
+						width="100%"
+						{...register("nationality", { required: true })}
+					>
 						<SelectOption>American</SelectOption>
 						<SelectOption>Russian</SelectOption>
 						<SelectOption>Belorussian</SelectOption>
 					</FormSelect>
 				</FormLabel>
-				<FormLabel>
+				<FormLabel isNotValid={!!errors.email}>
 					E-mail
 					<EmailContainer>
 						<FormInput
-							isNotValid={!isValid}
+							isNotValid={!!errors.email}
 							{...register("email", {
 								required: true,
 								pattern:
 									/[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/,
 							})}
 						/>
-						<ValidIcon isNotValid={!isValid} src={DoneIcon} alt="valid-icon" />
+						<ValidIcon
+							isNotValid={!!errors.email}
+							src={DoneIcon}
+							alt="valid-icon"
+						/>
 					</EmailContainer>
 				</FormLabel>
 				<FormLabel paddingTop="2px">
 					Date of Birth
 					<DateContainer>
-						<FormSelect width="56px" {...register("day")}>
+						<FormSelect width="56px" {...register("day", { required: true })}>
 							{days.map((dayItem) => (
 								<SelectOption key={dayItem}>{dayItem}</SelectOption>
 							))}
 						</FormSelect>
-						<FormSelect width="91px" {...register("month")}>
+						<FormSelect width="91px" {...register("month", { required: true })}>
 							{months.map((monthItem) => (
 								<SelectOption key={monthItem}>{monthItem}</SelectOption>
 							))}
 						</FormSelect>
-						<FormSelect width="68px" {...register("year")}>
+						<FormSelect width="68px" {...register("year", { required: true })}>
 							{years.map((yearItem) => (
 								<SelectOption key={yearItem}>{yearItem}</SelectOption>
 							))}
 						</FormSelect>
 					</DateContainer>
 				</FormLabel>
-				<FormLabel paddingTop="2px">
+				<FormLabel paddingTop="2px" isNotValid={!!errors.gender}>
 					Gender
 					<GenderContainer>
 						<GenderLabel>
 							<FormRadio
 								type="radio"
 								value="Male"
-								{...register("gender")}
+								{...register("gender", { required: true })}
 							></FormRadio>
 							Male
 						</GenderLabel>
@@ -230,19 +264,41 @@ export default function SignUpPage() {
 							<FormRadio
 								type="radio"
 								value="Female"
-								{...register("gender")}
+								{...register("gender", { required: true })}
 							></FormRadio>
 							Female
 						</GenderLabel>
 					</GenderContainer>
 				</FormLabel>
-				<FormLabel paddingTop="3px">
+				<FormLabel paddingTop="3px" isNotValid={!!errors.password && isDirty}>
 					Password
-					<FormInput {...register("password")} />
+					<FormInput
+						type="password"
+						isNotValid={!!errors.password}
+						{...register("password", {
+							required: true,
+							pattern:
+								/(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])[0-9a-zA-Z!@#$%^&*]{8,}/g,
+						})}
+					/>
 				</FormLabel>
-				<FormLabel paddingTop="3px">
+				<FormLabel
+					paddingTop="3px"
+					isNotValid={!!errors.passwordConfirmation && isDirty}
+				>
 					Confirm Password
-					<FormInput {...register("passwordConfirmation")} />
+					<FormInput
+						type="password"
+						isNotValid={
+							!!errors.passwordConfirmation &&
+							watchInputs.password !== watchInputs.passwordConfirmation
+						}
+						{...register("passwordConfirmation", {
+							required: true,
+							pattern:
+								/(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])[0-9a-zA-Z!@#$%^&*]{8,}/g,
+						})}
+					/>
 				</FormLabel>
 			</InputGroup>
 			<SubmitContainer>

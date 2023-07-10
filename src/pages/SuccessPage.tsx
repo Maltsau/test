@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import { useNavigate } from "react-router-dom";
 
 import {
 	PageTytle,
@@ -16,8 +17,13 @@ const Container = styled.div`
 `;
 
 export default function SuccessPage() {
+	const navigate = useNavigate();
 	return (
-		<Container>
+		<Container
+			onClick={() => {
+				navigate("/");
+			}}
+		>
 			<PageTytle padding="178px 0 0 43px">Thank You!</PageTytle>
 			<PageSubtytle padding="11px 0 0 43px">you registered!</PageSubtytle>
 			<LoginTytle padding="152px 0 0 0">
