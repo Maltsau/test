@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import { useForm, SubmitHandler, SubmitErrorHandler } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
+// import { useAutoAnimate } from "@formkit/auto-animate/react";
 
 import styled, { keyframes } from "styled-components";
 import DoneIcon from "../assets/icons/Shape.svg";
@@ -13,6 +14,52 @@ import {
 	LoginLink,
 } from "../UI/common-elements";
 import { useState } from "react";
+
+const appear = keyframes`
+	0%{
+		transform: translateY(500%);
+		opacity: 0;
+	}
+	100%{
+		transform: translateY(0%);
+		opacity: 1;
+}`;
+
+const shake = keyframes`
+	0% {
+		transform: translate(1px, 1px) rotate(0deg);
+	}
+	10% {
+		transform: translate(-1px, -2px) rotate(-1deg);
+	}
+	20% {
+		transform: translate(-3px, 0px) rotate(1deg);
+	}
+	30% {
+		transform: translate(3px, 2px) rotate(0deg);
+	}
+	40% {
+		transform: translate(1px, -1px) rotate(1deg);
+	}
+	50% {
+		transform: translate(-1px, 2px) rotate(-1deg);
+	}
+	60% {
+		transform: translate(-3px, 1px) rotate(0deg);
+	}
+	70% {
+		transform: translate(3px, 1px) rotate(-1deg);
+	}
+	80% {
+		transform: translate(-1px, -1px) rotate(1deg);
+	}
+	90% {
+		transform: translate(1px, 2px) rotate(0deg);
+	}
+	100% {
+		transform: translate(1px, -2px) rotate(-1deg);
+  }
+`;
 
 const UserForm = styled.form`
 	padding: 39px 22px 33px 21px;
@@ -52,6 +99,7 @@ const FormLabel = styled.label<{ paddingTop?: string; isNotValid?: boolean }>`
 	flex-direction: column;
 	align-items: baseline;
 	gap: 5.3px;
+	animation: 1s ${appear};
 	border-bottom: ${({ isNotValid }) =>
 		isNotValid ? "2px solid red" : "1px solid #f2f2f2"};
 `;
@@ -63,13 +111,14 @@ const FormInput = styled.input<{ isNotValid?: boolean }>`
 	font-size: 14px;
 	letter-spacing: 0.4px;
 	color: ${({ isNotValid }) => (isNotValid ? "red" : "inherit")};
+	background: transparent;
 `;
 
 const FormSelect = styled.select<{ width?: string }>`
 	border: none;
 	font-size: 14px;
 	width: ${(props) => props.width};
-	background: inherit;
+	background: transparent;
 `;
 
 const SelectOption = styled.option`
@@ -140,46 +189,10 @@ const SignUpButton = styled.div<{ isShaking: boolean }>`
 `;
 
 const ErrorParagraph = styled.div`
-	font-size: 12px;
+	font-size: 8px;
 	position: absolute;
-	top: 100%;
+	top: 105%;
 	color: red;
-`;
-
-const shake = keyframes`
-0% {
-    transform: translate(1px, 1px) rotate(0deg);
-  }
-  10% {
-    transform: translate(-1px, -2px) rotate(-1deg);
-  }
-  20% {
-    transform: translate(-3px, 0px) rotate(1deg);
-  }
-  30% {
-    transform: translate(3px, 2px) rotate(0deg);
-  }
-  40% {
-    transform: translate(1px, -1px) rotate(1deg);
-  }
-  50% {
-    transform: translate(-1px, 2px) rotate(-1deg);
-  }
-  60% {
-    transform: translate(-3px, 1px) rotate(0deg);
-  }
-  70% {
-    transform: translate(3px, 1px) rotate(-1deg);
-  }
-  80% {
-    transform: translate(-1px, -1px) rotate(1deg);
-  }
-  90% {
-    transform: translate(1px, 2px) rotate(0deg);
-  }
-  100% {
-    transform: translate(1px, -2px) rotate(-1deg);
-  }
 `;
 
 type inputs = {
@@ -197,20 +210,22 @@ type inputs = {
 
 export default function SignUpPage() {
 	const [formFail, setFormFail] = useState(false);
-	const days = new Array(31).fill(1).map((day, i) => (day = 1 + i));
+	// const [parent] = useAutoAnimate();
+	const days = new Array(31).fill(1).map((_day, i) => (_day = 1 + i));
 	const months = [...Array(12).keys()].map((key) =>
 		new Date(0, key).toLocaleString("en", { month: "long" })
 	);
 	const years = new Array(120)
 		.fill(1)
-		.map((year, i) => (year = 1904 + i))
+		.map((_year, i) => (_year = 1904 + i))
 		.reverse();
 
 	const {
 		register,
-		formState: { isValid, errors, isDirty },
+		formState: { errors, isDirty },
 		handleSubmit,
 		reset,
+		resetField,
 		watch,
 	} = useForm<inputs>({
 		mode: "onSubmit",
@@ -230,18 +245,15 @@ export default function SignUpPage() {
 	};
 
 	const onFail: SubmitErrorHandler<inputs> = (error) => {
+		if (error.password) {
+			resetField("passwordConfirmation");
+			resetField("password");
+		}
 		console.log("errors", error);
 		setFormFail(true);
 		setTimeout(() => setFormFail(false), 500);
 	};
 	const watchInputs = watch();
-	// console.log(
-	// 	"errors",
-	// 	errors,
-	// 	watchInputs.passwordConfirmation,
-	// 	watchInputs.password,
-	// 	watchInputs.password === watchInputs.passwordConfirmation
-	// );
 	return (
 		<UserForm style={{ backgroundImage: `url(${PageBackground})` }}>
 			<PageTytle>New user?</PageTytle>
@@ -371,18 +383,15 @@ export default function SignUpPage() {
 						isNotValid={!!errors.passwordConfirmation}
 						{...register("passwordConfirmation", {
 							required: true,
-							// pattern:
-							// 	/(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])[0-9a-zA-Z!@#$%^&*]{8,}/g,
-							// validate: () =>
-							// 	watchInputs.password
-							// 		? watchInputs.password === watchInputs.passwordConfirmation
-							// 		: true,
 						})}
 					/>
 				</FormLabel>
 				{(errors.password?.type === "validate" ||
 					errors.passwordConfirmation?.type === "validate") && (
-					<ErrorParagraph>{`Password does not match`}</ErrorParagraph>
+					<ErrorParagraph>{`Passwords does not match`}</ErrorParagraph>
+				)}
+				{errors.password?.type === "pattern" && (
+					<ErrorParagraph>{`password must contain at least 8 characters, uppercase and lowercase letters, and numbers`}</ErrorParagraph>
 				)}
 			</InputGroup>
 
