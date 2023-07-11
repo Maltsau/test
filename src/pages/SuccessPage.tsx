@@ -1,6 +1,8 @@
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 
+import { appearAnimation } from "../UI/animation";
+
 import {
 	PageTytle,
 	PageSubtytle,
@@ -14,6 +16,7 @@ const Container = styled.div`
 	display: flex;
 	flex-direction: column;
 	align-items: flex-start;
+	animation: 0.5s ${appearAnimation};
 `;
 
 export default function SuccessPage() {

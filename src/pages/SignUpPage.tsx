@@ -3,7 +3,8 @@ import { useForm, SubmitHandler, SubmitErrorHandler } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 // import { useAutoAnimate } from "@formkit/auto-animate/react";
 
-import styled, { keyframes } from "styled-components";
+import styled from "styled-components";
+import { appearAnimation, shakeAnimation } from "../UI/animation";
 import DoneIcon from "../assets/icons/Shape.svg";
 import PageBackground from "../assets/images/noun_925550.svg";
 
@@ -14,52 +15,6 @@ import {
 	LoginLink,
 } from "../UI/common-elements";
 import { useState } from "react";
-
-const appear = keyframes`
-	0%{
-		transform: translateY(500%);
-		opacity: 0;
-	}
-	100%{
-		transform: translateY(0%);
-		opacity: 1;
-}`;
-
-const shake = keyframes`
-	0% {
-		transform: translate(1px, 1px) rotate(0deg);
-	}
-	10% {
-		transform: translate(-1px, -2px) rotate(-1deg);
-	}
-	20% {
-		transform: translate(-3px, 0px) rotate(1deg);
-	}
-	30% {
-		transform: translate(3px, 2px) rotate(0deg);
-	}
-	40% {
-		transform: translate(1px, -1px) rotate(1deg);
-	}
-	50% {
-		transform: translate(-1px, 2px) rotate(-1deg);
-	}
-	60% {
-		transform: translate(-3px, 1px) rotate(0deg);
-	}
-	70% {
-		transform: translate(3px, 1px) rotate(-1deg);
-	}
-	80% {
-		transform: translate(-1px, -1px) rotate(1deg);
-	}
-	90% {
-		transform: translate(1px, 2px) rotate(0deg);
-	}
-	100% {
-		transform: translate(1px, -2px) rotate(-1deg);
-  }
-`;
 
 const UserForm = styled.form`
 	padding: 39px 22px 33px 21px;
@@ -99,7 +54,7 @@ const FormLabel = styled.label<{ paddingTop?: string; isNotValid?: boolean }>`
 	flex-direction: column;
 	align-items: baseline;
 	gap: 5.3px;
-	animation: 1s ${appear};
+	animation: 1s ${appearAnimation};
 	border-bottom: ${({ isNotValid }) =>
 		isNotValid ? "2px solid red" : "1px solid #f2f2f2"};
 `;
@@ -184,7 +139,7 @@ const SignUpButton = styled.div<{ isShaking: boolean }>`
 	color: white;
 	padding: 7px 25px;
 	cursor: pointer;
-	animation-name: ${({ isShaking }) => (isShaking ? shake : "none")};
+	animation-name: ${({ isShaking }) => (isShaking ? shakeAnimation : "none")};
 	animation-duration: 0.5s;
 `;
 
