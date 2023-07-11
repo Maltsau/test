@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import { useForm, SubmitHandler, SubmitErrorHandler } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-// import { useAutoAnimate } from "@formkit/auto-animate/react";
 
 import styled from "styled-components";
 import { appearAnimation, shakeAnimation } from "../UI/animation";
@@ -165,7 +164,6 @@ type inputs = {
 
 export default function SignUpPage() {
 	const [formFail, setFormFail] = useState(false);
-	// const [parent] = useAutoAnimate();
 	const days = new Array(31).fill(1).map((_day, i) => (_day = 1 + i));
 	const months = [...Array(12).keys()].map((key) =>
 		new Date(0, key).toLocaleString("en", { month: "long" })
